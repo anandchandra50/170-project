@@ -6,18 +6,18 @@ from os.path import isfile, join
 import sys
 
 # return a list of tuple edges connected to a node
-def get_edgelist(edges_by_node, node):
-    all_edges = []
-    for other_vertex in edges_by_node[node]:
-        all_edges.append((node, other_vertex))
-    return all_edges
-
-def get_connecting_edges(nodes, new_node, edges_by_node):
-    current_nodes_that_connect_to_new = set(edges_by_node[new_node]).intersection(nodes)
-    all_edges = []
-    for current in current_nodes_that_connect_to_new:
-        all_edges.append((new_node, current))
-    return all_edges
+# def get_edgelist(edges_by_node, node):
+#     all_edges = []
+#     for other_vertex in edges_by_node[node]:
+#         all_edges.append((node, other_vertex))
+#     return all_edges
+#
+# def get_connecting_edges(nodes, new_node, edges_by_node):
+#     current_nodes_that_connect_to_new = set(edges_by_node[new_node]).intersection(nodes)
+#     all_edges = []
+#     for current in current_nodes_that_connect_to_new:
+#         all_edges.append((new_node, current))
+#     return all_edges
 
 def solve(G):
     """
