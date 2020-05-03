@@ -28,26 +28,42 @@ def solve(G):
         T: networkx.Graph
     """
     T = nx.minimum_spanning_tree(G)
-    node_pairwise_distance = {} # node number to total distance from all other nodes
 
-    path_lengths = dict(nx.all_pairs_dijkstra_path_length(T))
-    for node in T.nodes:
-        node_pairwise_distance[node] = sum(path_lengths[node][n] for n in T.nodes)
-    node_pairwise_distance = {k: v for k, v in sorted(node_pairwise_distance.items(), key=lambda item: item[1], reverse=True)}
+    def get_node_distances(G):
+        """
+        Given a graph G, returns a dictionary that maps each node in G to the sum of 
+        distances from each node to every other node
+        """
+        node_pairwise_distance = {} # node number to total distance from all other nodes
+        path_lengths = dict(nx.all_pairs_dijkstra_path_length(G))
+        for node in G.nodes:
+            node_pairwise_distance[node] = sum(path_lengths[node][n] for n in G.nodes)
+        node_pairwise_distance = {k: v for k, v in sorted(node_pairwise_distance.items(), key=lambda item: item[1], reverse=True)}
+        return node_pairwise_distance
 
     # IDEAS
     # - terminate when we don't remove any more nodes, instead of single pass
     # - update all path distances after removing a node (might be unnecessary)
 
-    for node in node_pairwise_distance: # descending order, remove nodes with highest distances when possible
-        t_copy = nx.Graph()
-        t_copy.add_nodes_from(T.nodes)
-        t_copy.add_edges_from(T.edges)
-        t_copy.remove_node(node)
-        if len(list(t_copy.nodes)) == 0:
-            continue
-        if is_valid_network(G, t_copy):
-            T.remove_node(node)
+
+    change = True
+    while change:
+        # get distances
+        node_pairwise_distance = get_node_distances(T)
+        change = False
+        for node in node_pairwise_distance: # descending order, remove nodes with highest distances when possible
+            # makes graph copy
+            t_copy = nx.Graph()
+            t_copy.add_nodes_from(T.nodes)
+            t_copy.add_edges_from(T.edges)
+            t_copy.remove_node(node)
+            if len(list(t_copy.nodes)) == 0:
+                continue
+            if is_valid_network(G, t_copy):
+                # if we modify T, note that we made a change and recompute distances
+                T.remove_node(node)
+                change = True
+                break
 
     return T
     # TODO: your code here!
