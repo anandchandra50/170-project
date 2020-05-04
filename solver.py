@@ -21,32 +21,50 @@ import sys
 def validate_edge(edge, used_nodes):
     return (edge[0] in used_nodes and edge[1] not in used_nodes) or (edge[1] in used_nodes and edge[0] not in used_nodes)
 
+def basic_pairwise_distance(G):
+    node_pairwise_distance = {} # node number to total distance from all other nodes
+    path_lengths = dict(nx.all_pairs_dijkstra_path_length(G))
+    for node in G.nodes:
+        node_pairwise_distance[node] = sum(path_lengths[node][n] for n in G.nodes)
+    node_pairwise_distance = {k: v for k, v in sorted(node_pairwise_distance.items(), key=lambda item: item[1])}
+    return node_pairwise_distance
+
+def modified_pairwise_distance(G, T):
+    # CHANGE THIS TO INCLUDE T
+    node_pairwise_distance = {} # node number to total distance from all other nodes
+    path_lengths = dict(nx.all_pairs_dijkstra_path_length(G))
+    for node in G.nodes:
+        node_pairwise_distance[node] = sum(path_lengths[node][n] for n in G.nodes)
+    node_pairwise_distance = {k: v for k, v in sorted(node_pairwise_distance.items(), key=lambda item: item[1])}
+    return node_pairwise_distance
+
+def update_available_edge(G, T, all_edges):
+    available_edges = [all_edges[i] for i in range(len(all_edges)) if validate_edge(all_edges[i], list(T.nodes))]
+    # RE SORT THESE IN A DIFFERENT WAY USING NEW PAIRWISE DISTANCES
+    new_node_pairwise_distance = modified_pairwise_distance(G, T)
+    # available_edges.sort(key=lambda item: )
+    return available_edges
+
 # create MST
 def prims(G):
     # init graph
     T = nx.Graph()
 
     # node distances
-    node_pairwise_distance = {} # node number to total distance from all other nodes
-    path_lengths = dict(nx.all_pairs_dijkstra_path_length(G))
-    for node in G.nodes:
-        node_pairwise_distance[node] = sum(path_lengths[node][n] for n in G.nodes)
-    node_pairwise_distance = {k: v for k, v in sorted(node_pairwise_distance.items(), key=lambda item: item[1])}
+    node_pairwise_distance = basic_pairwise_distance(G)
 
     # edges
     all_edges = list(G.edges.data('weight'))
     # all_edges.sort(key=lambda item: (item[2], node_pairwise_distance[item[0]] + node_pairwise_distance[item[1]]))
     all_edges.sort(key=lambda item: (node_pairwise_distance[item[0]] + node_pairwise_distance[item[1]], item[2]))
 
-
     starting_node = list(node_pairwise_distance.keys())[0]
     T.add_node(starting_node)
 
     # loop
     while len(list(T.nodes)) != len(list(G.nodes)):
-        used_nodes = list(T.nodes)
         # filter available edges: include only if exactly one of the vertices is in used_nodes
-        available_edges = [all_edges[i] for i in range(len(all_edges)) if validate_edge(all_edges[i], used_nodes)]
+        available_edges = update_available_edge(G, T, all_edges)
         # already sorted by weight, so add the next edge
         next_edge = available_edges[0]
         T.add_edge(next_edge[0], next_edge[1], weight=next_edge[2])
