@@ -39,11 +39,10 @@ def modified_pairwise_distance(G, T):
     return node_pairwise_distance
 
 def update_available_edge(G, T, all_edges):
-    available_edges = [all_edges[i] for i in range(len(all_edges)) if validate_edge(all_edges[i], list(T.nodes))]
     # RE SORT THESE IN A DIFFERENT WAY USING NEW PAIRWISE DISTANCES
     new_node_pairwise_distance = modified_pairwise_distance(G, T)
-    # available_edges.sort(key=lambda item: )
-    return available_edges
+    # all_edges.sort(key=lambda item: )
+    return all_edges
 
 # create MST
 def prims(G):
@@ -64,7 +63,9 @@ def prims(G):
     # loop
     while len(list(T.nodes)) != len(list(G.nodes)):
         # filter available edges: include only if exactly one of the vertices is in used_nodes
-        available_edges = update_available_edge(G, T, all_edges)
+        if len(list(T.nodes)) == int(0.5 * len(list(G.nodes))): # change threshold
+            all_edges = update_available_edge(G, T, all_edges) # update the sorting of all edges
+        available_edges = [all_edges[i] for i in range(len(all_edges)) if validate_edge(all_edges[i], list(T.nodes))]
         # already sorted by weight, so add the next edge
         next_edge = available_edges[0]
         T.add_edge(next_edge[0], next_edge[1], weight=next_edge[2])
