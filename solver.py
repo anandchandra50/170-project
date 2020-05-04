@@ -18,6 +18,39 @@ import sys
 #     for current in current_nodes_that_connect_to_new:
 #         all_edges.append((new_node, current))
 #     return all_edges
+def validate_edge(edge, used_nodes):
+    return (edge[0] in used_nodes and edge[1] not in used_nodes) or (edge[1] in used_nodes and edge[0] not in used_nodes)
+
+# create MST
+def prims(G):
+    # init graph
+    T = nx.Graph()
+
+    # node distances
+    node_pairwise_distance = {} # node number to total distance from all other nodes
+    path_lengths = dict(nx.all_pairs_dijkstra_path_length(G))
+    for node in G.nodes:
+        node_pairwise_distance[node] = sum(path_lengths[node][n] for n in G.nodes)
+    node_pairwise_distance = {k: v for k, v in sorted(node_pairwise_distance.items(), key=lambda item: item[1])}
+
+    # edges
+    all_edges = list(G.edges.data('weight'))
+    all_edges.sort(key=lambda item: (item[2], node_pairwise_distance[item[0]] + node_pairwise_distance[item[1]]))
+
+
+    starting_node = list(node_pairwise_distance.keys())[0]
+    T.add_node(starting_node)
+
+    # loop
+    while len(list(T.nodes)) != len(list(G.nodes)):
+        used_nodes = list(T.nodes)
+        # filter available edges: include only if exactly one of the vertices is in used_nodes
+        available_edges = [all_edges[i] for i in range(len(all_edges)) if validate_edge(all_edges[i], used_nodes)]
+        # already sorted by weight, so add the next edge
+        next_edge = available_edges[0]
+        T.add_edge(next_edge[0], next_edge[1], weight=next_edge[2])
+    return T
+
 
 def solve(G):
     """
@@ -27,7 +60,8 @@ def solve(G):
     Returns:
         T: networkx.Graph
     """
-    T = nx.minimum_spanning_tree(G)
+    T = prims(G)
+    # T = nx.minimum_spanning_tree(G)
 
     if len(T.nodes) <= 2:
         return T
@@ -45,7 +79,7 @@ def solve(G):
 
     def get_node_distances(G):
         """
-        Given a graph G, returns a dictionary that maps each node in G to the sum of 
+        Given a graph G, returns a dictionary that maps each node in G to the sum of
         distances from each node to every other node
         """
         node_pairwise_distance = {} # node number to total distance from all other nodes
