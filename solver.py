@@ -29,6 +29,20 @@ def solve(G):
     """
     T = nx.minimum_spanning_tree(G)
 
+    if len(T.nodes) <= 2:
+        return T
+
+    leaves = []
+    # remove leaves first
+    for node in T.nodes:
+        if T.degree(node) == 1:
+            leaves.append(node)
+
+    # remove these leaves
+    for node in leaves:
+        T.remove_node(node)
+
+
     def get_node_distances(G):
         """
         Given a graph G, returns a dictionary that maps each node in G to the sum of 
@@ -40,11 +54,6 @@ def solve(G):
             node_pairwise_distance[node] = sum(path_lengths[node][n] for n in G.nodes)
         node_pairwise_distance = {k: v for k, v in sorted(node_pairwise_distance.items(), key=lambda item: item[1], reverse=True)}
         return node_pairwise_distance
-
-    # IDEAS
-    # - terminate when we don't remove any more nodes, instead of single pass
-    # - update all path distances after removing a node (might be unnecessary)
-
 
     change = True
     while change:
