@@ -38,11 +38,21 @@ def modified_pairwise_distance(G, T):
     node_pairwise_distance = {k: v for k, v in sorted(node_pairwise_distance.items(), key=lambda item: item[1])}
     return node_pairwise_distance
 
-def update_available_edge(G, T, all_edges):
-    # RE SORT THESE IN A DIFFERENT WAY USING NEW PAIRWISE DISTANCES
-    new_node_pairwise_distance = modified_pairwise_distance(G, T)
-    # all_edges.sort(key=lambda item: )
-    return all_edges
+def update_available_edges(T, available_edges):
+    for i in range(len(available_edges)):
+        (u, v, w) = available_edges[i]
+        new_vertex = u
+        if u in list(T.nodes):
+            new_vertex = v
+        T_copy = nx.Graph()
+        T_copy.add_nodes_from(T.nodes)
+        T_copy.add_edges_from(T.edges())
+        T_copy.add_edge(u, v, weight=w)
+        pairwise_distance = basic_pairwise_distance(T_copy)
+        new_cost = pairwise_distance[new_vertex]
+        available_edges[i] = (u, v, w, new_cost)
+    available_edges.sort(key=lambda item: item[3])
+    return available_edges
 
 # create MST
 def prims(G):
@@ -63,9 +73,12 @@ def prims(G):
     # loop
     while len(list(T.nodes)) != len(list(G.nodes)):
         # filter available edges: include only if exactly one of the vertices is in used_nodes
-        if len(list(T.nodes)) == int(0.5 * len(list(G.nodes))): # change threshold
-            all_edges = update_available_edge(G, T, all_edges) # update the sorting of all edges
+        # if len(list(T.nodes)) == int(0.5 * len(list(G.nodes))): # change threshold
+            # all_edges = update_available_edge(G, T, all_edges) # update the sorting of all edges
         available_edges = [all_edges[i] for i in range(len(all_edges)) if validate_edge(all_edges[i], list(T.nodes))]
+        if len(list(T.nodes)) >= int(0.5 * len(list(G.nodes))): # change threshold
+            available_edges = update_available_edges(T, available_edges)
+
         # already sorted by weight, so add the next edge
         next_edge = available_edges[0]
         T.add_edge(next_edge[0], next_edge[1], weight=next_edge[2])
