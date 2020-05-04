@@ -35,7 +35,8 @@ def prims(G):
 
     # edges
     all_edges = list(G.edges.data('weight'))
-    all_edges.sort(key=lambda item: (item[2], node_pairwise_distance[item[0]] + node_pairwise_distance[item[1]]))
+    # all_edges.sort(key=lambda item: (item[2], node_pairwise_distance[item[0]] + node_pairwise_distance[item[1]]))
+    all_edges.sort(key=lambda item: (node_pairwise_distance[item[0]] + node_pairwise_distance[item[1]], item[2]))
 
 
     starting_node = list(node_pairwise_distance.keys())[0]
